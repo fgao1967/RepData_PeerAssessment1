@@ -4,15 +4,33 @@ output:
   html_document:
     keep_md: true
 ---
-
+ 
 
 ## Loading and preprocessing the data
 
+ setwd("C:\\Users\\fgao1\\OneDrive\\Desktop\\scc_training_2021\\")
 
+  getwd()
+
+  gao1<-read.csv("activity.csv", header=T)
+
+  names(gao1)
 
 ## What is mean total number of steps taken per day?
 
+date.list<-unique(gao1$date)
 
+  n.date<- length(date.list)
+
+  sum.steps<-rep(NA, n.date)
+
+  for (i in 1:n.date) {
+     date.i<-date.list[i]
+     step.i<-gao1[gao1$date==date.i, "steps"]
+     sum.steps[i]<-sum(step.i, na.rm=T)
+  }
+
+  hist(sum.steps)
 
 ## What is the average daily activity pattern?
 
