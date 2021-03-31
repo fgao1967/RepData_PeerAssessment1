@@ -1,0 +1,109 @@
+
+---
+title: Activity analysis
+author: Feng Gao
+date: March 30, 2021
+output: html_document
+---
+
+
+
+## Loading and preprocessing the data
+ 
+```{r, echo=T, eval=T} 
+
+  # readin data
+  setwd("C:\\Users\\fgao1\\OneDrive\\Desktop\\scc_training_2021\\")
+  getwd()
+  gao1<-read.csv("activity.csv", header=T)
+  names(gao1)
+ 
+ ```
+
+## What is average number of steps taken per day?
+
+ histogram of mean is shown in Figure 1 and the median daily steps is listed in the table
+ 
+ ```{r, echo=T, eval=T} 
+
+  # total steps by days
+  date.list<-unique(gao1$date)
+  n.date<- length(date.list)
+  mean.steps<-rep(NA, n.date)
+  median.steps<-rep(NA, n.date)
+
+  for (i in 1:n.date) {
+     date.i<-date.list[i]
+     step.i<-gao1[gao1$date==date.i, "steps"]
+     mean.steps[i]<- mean(step.i, na.rm=T)
+     median.steps[i]<- quantile(step.i, probs=0.5, na.rm=T)
+  }
+  median.steps
+  
+  hist(mean.steps, main="Figure 1: mean daily steps")
+
+  
+ ```
+ 
+## What is the average daily activity pattern?
+  time series plot of the average number of steps 
+  (averaged across all days) is shown in Figure 2
+
+ ```{r, echo=T, eval=T} 
+
+   # mean steps by interval
+  int.list<-unique(gao1$interval)
+  n.int<- length(int.list)
+  mean.steps<- array(NA, c(n.int,2))
+
+  for (i in 1:n.int) {
+     int.i<-int.list[i]
+     step.i<-gao1[gao1$interval==int.i, "steps"]
+     mean.steps[i,1]<-int.i
+     mean.steps[i,2]<-mean(step.i, na.rm=T)
+  }
+  
+  plot(x=mean.steps[,1], y=mean.steps[,2], type="l",
+       main="Figure 2: mean daily pattern", xlab="time intervals (5 mins)")
+  
+  
+```
+# Which 5-minute interval contain the maximum number of steps?
+
+```{r, echo=T, eval=T} 
+
+max.steps.loc <- mean.steps[which.max(mean.steps[,2]),1]
+max.steps.loc
+
+```
+
+
+
+
+
+## Imputing missing values
+ a new variable steps.new will be created where the missing values 
+ will be replaced by the overall average
+
+```{r, echo=T, eval=T} 
+
+gao1$steps.new <- ifelse(is.na(gao1$steps), mean(gao1$steps, na.rm=T), gao1$steps)
+cat("\n     raw-data: mean =", round(mean(gao1$steps, na.rm=T), 2), ",   SD =", round(sqrt(var(gao1$steps, na.rm=T)), 2))
+cat("\n imputed-data: mean =", round(mean(gao1$steps.new), 2), ",   SD =", round(sqrt(var(gao1$steps.new)), 2))
+
+```
+
+## Are there differences in activity patterns between weekdays and weekends?
+ panel plots for weekdays and weekends patterns (figure3)
+ 
+```{r, echo=T, eval=T} 
+library(lattice)
+gao1$date.new<- weekdays(as.Date(gao1$date))
+gao1$weekend<- ifelse(gao1$date.new == "Saturday" | gao1$date.new == "Sunday", "WeekEnd", "WeekDay")
+mean.weekend<- aggregate(steps ~ interval+weekend, data=gao1, FUN=mean)
+xyplot(steps ~ interval | factor(weekend), layout = c(1, 2), type = "l",
+               xlab = "time intervals (5 min)", ylab = "Average Number of Steps",  
+               data = mean.weekend)
+```
+
+
